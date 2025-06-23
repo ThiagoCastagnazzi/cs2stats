@@ -1,0 +1,180 @@
+2025-06-21 12:49:53,465 | INFO | 🔄 Resetando rankings e pontos dos times...
+2025-06-21 12:49:53,472 | INFO | ✅ Rankings resetados.
+2025-06-21 12:49:53,472 | INFO | Iniciando salvamento dos times...
+2025-06-21 12:49:56,595 | INFO | Processando time: Vitality
+2025-06-21 12:49:56,597 | INFO |  -> Processando jogador: apEX
+2025-06-21 12:50:01,391 | INFO |  -> Processando jogador: ropz
+2025-06-21 12:50:06,294 | INFO |  -> Processando jogador: ZywOo
+2025-06-21 12:50:11,164 | INFO |  -> Processando jogador: flameZ
+2025-06-21 12:50:15,890 | INFO |  -> Processando jogador: mezii
+2025-06-21 12:50:20,540 | INFO | Processando time: MOUZ
+2025-06-21 12:50:20,541 | INFO |  -> Processando jogador: Brollan
+2025-06-21 12:50:25,325 | INFO |  -> Processando jogador: torzsi
+2025-06-21 12:50:30,076 | INFO |  -> Processando jogador: Spinx
+2025-06-21 12:50:35,057 | INFO |  -> Processando jogador: Jimpphat
+2025-06-21 12:50:39,772 | INFO |  -> Processando jogador: xertioN
+2025-06-21 12:50:44,371 | INFO | Processando time: Spirit
+2025-06-21 12:50:44,372 | INFO |  -> Processando jogador: chopper
+2025-06-21 12:50:49,164 | INFO |  -> Processando jogador: sh1ro
+2025-06-21 12:50:54,083 | INFO |  -> Processando jogador: magixx
+2025-06-21 12:50:58,951 | INFO |  -> Processando jogador: zont1x
+2025-06-21 12:51:04,619 | INFO |  -> Processando jogador: donk
+2025-06-21 12:51:09,975 | INFO | Processando time: Falcons
+2025-06-21 12:51:09,984 | INFO |  -> Processando jogador: NiKo
+2025-06-21 12:51:15,596 | INFO |  -> Processando jogador: Magisk
+2025-06-21 12:51:21,048 | INFO |  -> Processando jogador: TeSeS
+2025-06-21 12:51:26,032 | INFO |  -> Processando jogador: m0NESY
+2025-06-21 12:51:30,741 | INFO |  -> Processando jogador: kyxsan
+2025-06-21 12:51:35,392 | INFO | Processando time: The MongolZ
+2025-06-21 12:51:35,399 | INFO |  -> Processando jogador: bLitz
+2025-06-21 12:51:40,159 | INFO |  -> Processando jogador: Techno
+2025-06-21 12:51:45,080 | INFO |  -> Processando jogador: Senzu
+2025-06-21 12:51:49,900 | INFO |  -> Processando jogador: mzinho
+2025-06-21 12:51:54,797 | INFO |  -> Processando jogador: 910
+2025-06-21 12:51:59,599 | INFO | Processando time: Aurora
+2025-06-21 12:51:59,606 | INFO |  -> Processando jogador: MAJ3R
+2025-06-21 12:52:04,268 | INFO |  -> Processando jogador: XANTARES
+2025-06-21 12:52:09,541 | INFO |  -> Processando jogador: woxic
+2025-06-21 12:52:14,401 | INFO |  -> Processando jogador: Wicadia
+2025-06-21 12:52:19,176 | INFO |  -> Processando jogador: jottAAA
+2025-06-21 12:52:23,913 | INFO | Processando time: Natus Vincere
+2025-06-21 12:52:23,920 | INFO |  -> Processando jogador: Aleksib
+2025-06-21 12:52:29,603 | INFO |  -> Processando jogador: iM
+2025-06-21 12:52:34,549 | INFO |  -> Processando jogador: b1t
+2025-06-21 12:52:39,439 | INFO |  -> Processando jogador: jL
+2025-06-21 12:52:44,186 | INFO |  -> Processando jogador: w0nderful
+2025-06-21 12:52:48,810 | INFO | Processando time: G2
+2025-06-21 12:52:48,817 | INFO |  -> Processando jogador: Snax
+2025-06-21 12:52:53,920 | INFO |  -> Processando jogador: huNter-
+2025-06-21 12:52:58,771 | INFO |  -> Processando jogador: malbsMd
+2025-06-21 12:53:03,526 | INFO |  -> Processando jogador: hades
+2025-06-21 12:53:08,185 | INFO |  -> Processando jogador: HeavyGod
+2025-06-21 12:53:13,017 | INFO | Processando time: FaZe
+2025-06-21 12:53:13,024 | INFO |  -> Processando jogador: karrigan
+2025-06-21 12:53:18,011 | INFO |  -> Processando jogador: s1mple
+2025-06-21 12:53:22,935 | INFO |  -> Processando jogador: rain
+2025-06-21 12:53:27,999 | INFO |  -> Processando jogador: EliGE
+2025-06-21 12:53:33,315 | INFO |  -> Processando jogador: frozen
+2025-06-21 12:53:38,228 | INFO | Processando time: FURIA
+2025-06-21 12:53:38,235 | INFO |  -> Processando jogador: FalleN
+2025-06-21 12:53:43,319 | INFO |  -> Processando jogador: yuurih
+2025-06-21 12:53:48,179 | INFO |  -> Processando jogador: YEKINDAR
+2025-06-21 12:53:53,342 | INFO |  -> Processando jogador: KSCERATO
+2025-06-21 12:53:58,204 | INFO |  -> Processando jogador: molodoy
+2025-06-21 12:54:03,072 | INFO | Processando time: GamerLegion
+2025-06-21 12:54:03,079 | INFO |  -> Processando jogador: REZ
+2025-06-21 12:54:08,828 | INFO |  -> Processando jogador: ztr
+2025-06-21 12:54:13,703 | INFO |  -> Processando jogador: Tauson
+2025-06-21 12:54:18,586 | INFO |  -> Processando jogador: PR
+2025-06-21 12:54:23,805 | INFO | Processando time: Virtus.pro
+2025-06-21 12:54:23,812 | INFO |  -> Processando jogador: electroNic
+2025-06-21 12:54:29,282 | INFO |  -> Processando jogador: FL1T
+2025-06-21 12:54:34,126 | INFO |  -> Processando jogador: fame
+2025-06-21 12:54:39,492 | INFO |  -> Processando jogador: FL4MUS
+2025-06-21 12:54:44,404 | INFO |  -> Processando jogador: ICY
+2025-06-21 12:54:49,336 | INFO | Processando time: Liquid
+2025-06-21 12:54:49,343 | INFO |  -> Processando jogador: NAF
+2025-06-21 12:54:54,806 | INFO |  -> Processando jogador: NertZ
+2025-06-21 12:54:59,978 | INFO |  -> Processando jogador: Twistzz
+2025-06-21 12:55:04,948 | INFO |  -> Processando jogador: siuhy
+2025-06-21 12:55:09,698 | INFO |  -> Processando jogador: ultimate
+2025-06-21 12:55:14,299 | INFO | Processando time: Astralis
+2025-06-21 12:55:14,305 | INFO |  -> Processando jogador: device
+2025-06-21 12:55:19,511 | INFO |  -> Processando jogador: stavn
+2025-06-21 12:55:24,408 | INFO |  -> Processando jogador: jabbi
+2025-06-21 12:55:29,126 | INFO |  -> Processando jogador: Staehr
+2025-06-21 12:55:33,869 | INFO | Processando time: HEROIC
+2025-06-21 12:55:33,875 | INFO |  -> Processando jogador: SunPayus
+2025-06-21 12:55:38,633 | INFO |  -> Processando jogador: xfl0ud
+2025-06-21 12:55:43,528 | INFO |  -> Processando jogador: LNZ
+2025-06-21 12:55:49,144 | INFO |  -> Processando jogador: tN1R
+2025-06-21 12:55:53,886 | INFO |  -> Processando jogador: yxngstxr
+2025-06-21 12:55:58,103 | INFO | Processando time: 3DMAX
+2025-06-21 12:55:58,109 | INFO |  -> Processando jogador: bodyy
+2025-06-21 12:56:02,976 | INFO |  -> Processando jogador: Maka
+2025-06-21 12:56:09,430 | INFO |  -> Processando jogador: Lucky
+2025-06-21 12:56:14,405 | INFO |  -> Processando jogador: Ex3rcice
+2025-06-21 12:56:19,734 | INFO |  -> Processando jogador: Graviti
+2025-06-21 12:56:23,662 | INFO | Processando time: Legacy
+2025-06-21 12:56:23,668 | INFO |  -> Processando jogador: dumau
+2025-06-21 12:56:28,157 | INFO |  -> Processando jogador: latto
+2025-06-21 12:56:32,943 | INFO |  -> Processando jogador: n1ssim
+2025-06-21 12:56:37,483 | INFO |  -> Processando jogador: lux
+2025-06-21 12:56:42,171 | INFO |  -> Processando jogador: saadzin
+2025-06-21 12:56:47,468 | INFO | Processando time: MIBR
+2025-06-21 12:56:47,474 | INFO |  -> Processando jogador: exit
+2025-06-21 12:56:52,075 | INFO |  -> Processando jogador: saffee
+2025-06-21 12:56:56,843 | INFO |  -> Processando jogador: brnz4n
+2025-06-21 12:57:01,553 | INFO |  -> Processando jogador: insani
+2025-06-21 12:57:06,118 | INFO | Processando time: paiN
+2025-06-21 12:57:06,125 | INFO |  -> Processando jogador: dgt
+2025-06-21 12:57:10,828 | INFO |  -> Processando jogador: biguzera
+2025-06-21 12:57:15,647 | INFO |  -> Processando jogador: dav1deuS
+2025-06-21 12:57:20,549 | INFO |  -> Processando jogador: nqz
+2025-06-21 12:57:25,616 | INFO |  -> Processando jogador: snow
+2025-06-21 12:57:30,431 | INFO | Processando time: B8
+2025-06-21 12:57:30,438 | INFO |  -> Processando jogador: headtr1ck
+2025-06-21 12:57:36,034 | INFO |  -> Processando jogador: alex666
+2025-06-21 12:57:40,875 | INFO |  -> Processando jogador: npl
+2025-06-21 12:57:46,212 | INFO |  -> Processando jogador: kensizor
+2025-06-21 12:57:51,072 | INFO |  -> Processando jogador: esenthial
+2025-06-21 12:57:55,904 | INFO | Processando time: Complexity
+2025-06-21 12:57:55,911 | INFO |  -> Processando jogador: JT
+2025-06-21 12:58:02,399 | INFO |  -> Processando jogador: hallzerk
+2025-06-21 12:58:07,939 | INFO |  -> Processando jogador: Grim
+2025-06-21 12:58:12,927 | INFO |  -> Processando jogador: Cxzi
+2025-06-21 12:58:17,827 | INFO |  -> Processando jogador: nicx
+2025-06-21 12:58:22,441 | INFO | Processando time: Lynn Vision
+2025-06-21 12:58:22,448 | INFO |  -> Processando jogador: Westmelon
+2025-06-21 12:58:27,359 | INFO |  -> Processando jogador: z4kr
+2025-06-21 12:58:32,157 | INFO |  -> Processando jogador: Starry
+2025-06-21 12:58:36,802 | INFO |  -> Processando jogador: EmiliaQAQ
+2025-06-21 12:58:41,496 | INFO |  -> Processando jogador: C4LLM3SU3
+2025-06-21 12:58:50,408 | INFO | Processando time: Ninjas in Pyjamas
+2025-06-21 12:58:50,414 | INFO |  -> Processando jogador: Snappi
+2025-06-21 12:58:55,227 | INFO |  -> Processando jogador: sjuush
+2025-06-21 12:59:00,056 | INFO |  -> Processando jogador: r1nkle
+2025-06-21 12:59:04,850 | INFO |  -> Processando jogador: ewjerkz
+2025-06-21 12:59:09,326 | INFO |  -> Processando jogador: arrozdoce
+2025-06-21 12:59:14,066 | INFO | Processando time: Nemiga
+2025-06-21 12:59:14,073 | INFO |  -> Processando jogador: Xant3r
+2025-06-21 12:59:18,746 | INFO |  -> Processando jogador: 1eeR
+2025-06-21 12:59:23,500 | INFO |  -> Processando jogador: riskyb0b
+2025-06-21 12:59:28,245 | INFO |  -> Processando jogador: khaN
+2025-06-21 12:59:33,701 | INFO |  -> Processando jogador: zweih
+2025-06-21 12:59:37,535 | INFO | Processando time: TYLOO
+2025-06-21 12:59:37,541 | INFO |  -> Processando jogador: Attacker
+2025-06-21 12:59:43,184 | INFO |  -> Processando jogador: JamYoung
+2025-06-21 12:59:48,102 | INFO |  -> Processando jogador: Jee
+2025-06-21 12:59:53,294 | INFO |  -> Processando jogador: Mercury
+2025-06-21 12:59:58,770 | INFO |  -> Processando jogador: Moseyuh
+2025-06-21 13:00:03,676 | INFO | Processando time: BIG
+2025-06-21 13:00:03,684 | INFO |  -> Processando jogador: tabseN
+2025-06-21 13:00:08,468 | INFO |  -> Processando jogador: JDC
+2025-06-21 13:00:13,385 | INFO |  -> Processando jogador: Krimbo
+2025-06-21 13:00:18,222 | INFO |  -> Processando jogador: kyuubii
+2025-06-21 13:00:22,990 | INFO |  -> Processando jogador: hyped
+2025-06-21 13:00:27,967 | INFO | Processando time: Wildcard
+2025-06-21 13:00:27,974 | INFO |  -> Processando jogador: stanislaw
+2025-06-21 13:00:33,192 | INFO |  -> Processando jogador: Sonic
+2025-06-21 13:00:39,054 | INFO |  -> Processando jogador: phzy
+2025-06-21 13:00:44,648 | INFO |  -> Processando jogador: susp
+2025-06-21 13:00:50,289 | INFO |  -> Processando jogador: JBa
+2025-06-21 13:00:55,703 | INFO | Processando time: FlyQuest
+2025-06-21 13:00:55,710 | INFO |  -> Processando jogador: Liazz
+2025-06-21 13:01:00,477 | INFO |  -> Processando jogador: INS
+2025-06-21 13:01:05,432 | INFO |  -> Processando jogador: Vexite
+2025-06-21 13:01:10,255 | INFO |  -> Processando jogador: nettik
+2025-06-21 13:01:15,811 | INFO |  -> Processando jogador: regali
+2025-06-21 13:01:20,572 | INFO | Processando time: BetBoom
+2025-06-21 13:01:20,578 | INFO |  -> Processando jogador: Boombl4
+2025-06-21 13:01:25,417 | INFO |  -> Processando jogador: zorte
+2025-06-21 13:01:30,627 | INFO |  -> Processando jogador: Ax1Le
+2025-06-21 13:01:35,334 | INFO |  -> Processando jogador: S1ren
+2025-06-21 13:01:40,072 | INFO |  -> Processando jogador: Magnojez
+2025-06-21 13:01:45,127 | INFO | Processando time: M80
+2025-06-21 13:01:45,133 | INFO |  -> Processando jogador: slaxz-
+2025-06-21 13:01:51,238 | INFO |  -> Processando jogador: Swisher
+2025-06-21 13:01:56,484 | INFO |  -> Processando jogador: reck
+2025-06-21 13:02:02,252 | INFO |  -> Processando jogador: s1n
+2025-06-21 13:02:07,657 | INFO |  -> Processando jogador: Lake
