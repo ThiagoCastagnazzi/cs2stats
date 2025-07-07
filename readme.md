@@ -144,13 +144,21 @@ O sistema HLTV expandido é uma API RESTful para acessar dados de times e jogado
 
 ## Como Usar
 
+Execute o docker-composer.yml para poder instalar o container com o Postgres.
+
+Para capturar os dados dos times, execute o arquivo `scraper.py`.
+
+```bash
+run scraper.py
+```
+
 Para rodar a aplicação, execute o arquivo `main.py` com um servidor ASGI como o Uvicorn. Certifique-se de ter as dependências instaladas (FastAPI, SQLAlchemy, Uvicorn, etc.).
 
 ```bash
 uvicorn main:app --reload
 ```
 
-Após iniciar o servidor, você pode acessar a documentação interativa da API em `http://127.0.0.1:8000/docs` ou `http://localhost:8000/docs` e testar as rotas diretamente do navegador ou usando ferramentas como Postman ou Insomnia.
+Após iniciar o servidor, você pode acessar a documentação interativa da API em `http://127.0.0.1:5000/docs` ou `http://localhost:5000/docs` e testar as rotas diretamente do navegador ou usando ferramentas como Postman ou Insomnia.
 
 ## Melhorias Futuras
 
@@ -165,6 +173,4 @@ Após iniciar o servidor, você pode acessar a documentação interativa da API 
 Esta documentação fornece uma visão geral abrangente da API HLTV Expandida, seus modelos de dados, rotas disponíveis e estrutura do projeto. O sistema é projetado para ser extensível, fácil de usar e fornece acesso programático a dados detalhados de Counter-Strike 2. O objetivo é oferecer uma base robusta para análise e desenvolvimento de aplicações relacionadas ao cenário competitivo de CS2.
 
 ---
-
-*Documentação gerada por Manus AI em 7 de julho de 2025.*
 
