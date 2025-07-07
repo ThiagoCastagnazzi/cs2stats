@@ -191,7 +191,11 @@ def get_player_stats_page(player_url: str) -> Dict[str, float]:
         stats["deaths_per_round"] = extract_stat(["deaths / round"])
         stats["saved_by_teammate_per_round"] = extract_stat(["saved by teammate / round"])
         stats["saved_teammates_per_round"] = extract_stat(["saved teammates / round"])
-        stats["rating"] = extract_stat(["rating 2.0"])
+        rating = extract_stat(["rating"])
+        if not rating:
+            rating = extract_stat(["rating 2.1"])
+
+        stats["rating"] = rating
 
         return stats
 
@@ -377,6 +381,9 @@ def get_player_details(player_url):
         else:
             data["stats"] = {}
 
+        # Coleta os troféus/conquistas do jogador
+        data["achievements"] = get_player_achievements(soup)
+
         return data
 
     except Exception as e:
@@ -389,7 +396,7 @@ def get_player_details(player_url):
 
 def top30_teams():
     """
-    Coleta os top 30 times do ranking do HLTV.org
+    Coleta os top 30 times do ranking do HLTV.org com informações adicionais
     """
     print("Coletando ranking dos times do HLTV.org...")
 
@@ -404,60 +411,83 @@ def top30_teams():
         html = page.content()
         soup = BeautifulSoup(html, "lxml")
 
-        # Procura pelo bloco de ranking
         ranking_block = soup.find("div", {"class": "ranking"})
         if not ranking_block:
             print("Ranking block não encontrado!")
-            # Tenta estrutura alternativa
             return extract_teams_alternative(soup)
 
         teams = []
 
-        for team in ranking_block.find_all(
-                "div", {"class": "ranked-team standard-box"}
-        ):
+        for team in ranking_block.find_all("div", {"class": "ranked-team standard-box"}):
             if len(teams) >= 30:
                 break
 
             try:
-                # Nome do time
-                name_elem = team.find("div", class_="ranking-header").select_one(
-                    ".name"
-                )
-                if not name_elem:
-                    continue
-                name = name_elem.text.strip()
+                name = team.find("div", class_="ranking-header").select_one(".name").text.strip()
+                ranking = int(team.select_one(".position").text.strip().replace("#", ""))
 
-                # Ranking
-                ranking_elem = team.select_one(".position")
-                if not ranking_elem:
-                    continue
-                ranking = int(ranking_elem.text.strip().replace("#", ""))
-
-                # Pontos
-                points = 0
                 points_elem = team.find("span", {"class": "points"})
-                if points_elem:
-                    points_text = points_elem.text.strip("()").split(" ")[0]
-                    points = int(points_text) or 0
+                points = int(points_elem.text.strip("()").split(" ")[0]) if points_elem else 0
 
-                # URL do time
-                team_page_link = team.find("a", href=re.compile(r"/team/\d+/"))
-                if team_page_link:
-                    team_url = "https://www.hltv.org" + team_page_link["href"]
+                more_div = team.find("div", class_="more")
+                team_url = None
+                if more_div:
+                    profile_link = more_div.find("a", href=re.compile(r"/team/\d+/"))
+                    if profile_link:
+                        team_url = "https://www.hltv.org" + profile_link["href"]
 
-                if name and ranking and team_url:
-                    teams.append(
-                        {
-                            "name": name,
-                            "ranking": ranking,
-                            "points": points,
-                            "url": team_url,
-                            "players": [],  # Será preenchido depois
-                        }
-                    )
+                team_picture_elem = team.find("span", {"class": "team-logo"}).find("img")
+                team_picture_url = team_picture_elem.get("src") if team_picture_elem else None
 
-                    print(f"Time coletado: {name} (#{ranking})")
+                if not all([name, ranking, team_url]):
+                    continue
+
+                # Coleta informações adicionais da página do time
+                team_details = {}
+                trophies = []
+                stats = {}
+                maps_stats = []
+
+                if team_url:
+                    try:
+                        print(f"Coletando detalhes adicionais de: {team_url}")
+                        if safe_navigate(page, team_url):
+                            team_html = page.content()
+                            team_soup = BeautifulSoup(team_html, "lxml")
+
+                            # Coleta informações básicas do time
+                            country_elem = team_soup.find("div", class_="team-country")
+                            if country_elem:
+                                team_details["country"] = country_elem.text.strip()
+
+                            # Coleta os troféus/conquistas
+                            trophies = get_team_achievements(team_soup)
+
+                            # Coleta estatísticas do time
+                            stats = get_team_stats(team_soup)
+
+                            maps_stats = get_team_map_stats(team_soup)
+
+                            # Adiciona um delay para evitar bloqueio
+                            time.sleep(random.uniform(2, 5))
+
+                    except Exception as e:
+                        print(f"Erro ao coletar detalhes do time {name}: {e}")
+
+                teams.append({
+                    "name": name,
+                    "ranking": ranking,
+                    "points": points,
+                    "url": team_url,
+                    "logo_url": team_picture_url,
+                    "details": team_details,
+                    "stats": stats,
+                    "trophies": trophies,
+                    "map_stats": maps_stats,
+                    "players": []
+                })
+
+                print(f"Time coletado: {name} (#{ranking}) com {len(trophies)} troféus")
 
             except Exception as e:
                 print(f"Erro ao processar time: {e}")
@@ -471,6 +501,274 @@ def top30_teams():
         return []
     finally:
         page.close()
+
+
+def get_team_achievements(team_soup):
+    """
+    Coleta todas as conquistas/troféus de um time e formata para o modelo TeamAchievement
+    Retorna lista de dicionários prontos para criação de objetos TeamAchievement
+    """
+    achievements = []
+
+    trophy_row = team_soup.find("div", class_="trophyRow")
+    if not trophy_row:
+        return achievements
+
+    for trophy in trophy_row.find_all(["a", "div"], class_="trophy"):
+        try:
+            img = trophy.find("img", class_="trophyIcon")
+            if not img:
+                continue
+
+            # Extrai título e verifica se é um Major
+            title_span = trophy.find("span", class_="trophyDescription")
+            is_major = "majorTrophy" in title_span.get("class", [])
+            title = title_span.get("title", "")
+
+            # Extrai o ano do título
+            year = None
+            year_match = re.search(r"\b(20\d{2})\b", title)
+            if year_match:
+                year = int(year_match.group(1))
+
+            # Determina o tier do evento
+            event_tier = "S-Tier"  # Valor padrão
+            if is_major:
+                event_tier = "Major"
+            elif "blast" in title.lower():
+                event_tier = "S-Tier"
+            elif "iem" in title.lower():
+                event_tier = "S-Tier"
+            elif "esl" in title.lower():
+                event_tier = "A-Tier"
+
+            # Formata a URL da imagem
+            image_url = img["src"]
+            if image_url.startswith("/"):
+                image_url = "https://www.hltv.org" + image_url
+
+            achievement_data = {
+                "title": title,
+                "event_name": title.split(" ")[0] if title else None,  # Nome simplificado do evento
+                "year": year,
+                "placement": "1st",  # Assume primeiro lugar
+                "trophy_image_url": image_url,
+                "event_tier": event_tier
+            }
+
+            # Se for um link, pega a URL do evento
+            if trophy.name == "a" and trophy.has_attr("href"):
+                achievement_data["event_url"] = "https://www.hltv.org" + trophy["href"]
+
+            achievements.append(achievement_data)
+
+        except Exception as e:
+            print(f"Erro ao processar troféu: {e}")
+            continue
+
+    return achievements
+
+
+def get_player_achievements(player_soup):
+    """
+    Coleta todas as conquistas/troféus de um jogador e formata para o modelo PlayerAchievement
+    Retorna lista de dicionários prontos para criação de objetos PlayerAchievement
+
+    Args:
+        player_soup: BeautifulSoup object da página do jogador
+
+    Returns:
+        Lista de dicionários com informações dos troféus
+    """
+    achievements = []
+
+    trophy_row = player_soup.find("div", class_="trophyRow")
+    if not trophy_row:
+        return achievements
+
+    for trophy in trophy_row.find_all(["a", "div"], class_="trophy"):
+        try:
+            img = trophy.find("img", class_="trophyIcon")
+            if not img:
+                continue
+
+            # Extrai título e verifica se é um Major
+            title_span = trophy.find("span", class_="trophyDescription")
+            is_major = "majorTrophy" in title_span.get("class", []) if title_span else False
+            title = title_span.get("title", "") if title_span else ""
+
+            # Extrai o ano do título (se for um prêmio anual)
+            year = None
+            award_year = trophy.find("span", class_="award-year")
+            if award_year:
+                year = int(award_year.text.strip().replace("'", "20"))
+            else:
+                year_match = re.search(r"\b(20\d{2})\b", title)
+                if year_match:
+                    year = int(year_match.group(1))
+
+            # Determina o tipo de conquista
+            achievement_type = "tournament"  # Padrão para torneios
+            if "best player" in title.lower() or "award" in title.lower():
+                achievement_type = "individual_award"
+            elif "igl of the year" in title.lower():
+                achievement_type = "panel_award"
+
+            # Determina o tier do evento (para torneios)
+            event_tier = "S-Tier"  # Valor padrão
+            if is_major:
+                event_tier = "Major"
+            elif "blast" in title.lower():
+                event_tier = "S-Tier"
+            elif "iem" in title.lower():
+                event_tier = "S-Tier"
+            elif "esl" in title.lower():
+                event_tier = "A-Tier"
+            elif "dreamhack" in title.lower():
+                event_tier = "A-Tier"
+
+            # Formata a URL da imagem
+            image_url = img["src"]
+            if image_url.startswith("/"):
+                image_url = "https://www.hltv.org" + image_url
+
+            achievement_data = {
+                "title": title,
+                "event_name": title.split(" ")[0] if title else None,
+                "year": year,
+                "achievement_type": achievement_type,
+                "trophy_image_url": image_url,
+                "event_tier": event_tier if achievement_type == "tournament" else None,
+                "placement": "1st" if achievement_type == "tournament" else None,
+                "individual_award_type": achievement_type if achievement_type != "tournament" else None
+            }
+
+            # Se for um link, pega a URL do evento
+            if trophy.name == "a" and trophy.has_attr("href"):
+                achievement_data["event_url"] = "https://www.hltv.org" + trophy["href"]
+
+            achievements.append(achievement_data)
+
+        except Exception as e:
+            print(f"Erro ao processar troféu do jogador: {e}")
+            continue
+
+    return achievements
+
+
+def get_team_stats(team_soup):
+    """
+    Coleta estatísticas do time como win rate, etc.
+    """
+    stats = {
+        'win_rate': None,
+    }
+
+    try:
+        matches_tab = team_soup.find("div", {"id": "matchesBox"})
+        if not matches_tab:
+            return stats
+
+        win_rate_div = matches_tab.findAll("div", class_="highlighted-stat")[1]
+        if win_rate_div:
+            stat_div = win_rate_div.find("div", class_="stat")
+            stats['win_rate'] = float(stat_div.text.strip().replace('%', ''))
+
+        stats_tab = team_soup.find("div", {"id": "statsBox"})
+        if not stats_tab:
+            return stats
+
+
+    except Exception as e:
+        print(f"Erro ao coletar estatísticas do time: {e}")
+
+    return stats
+
+
+def get_team_map_stats(team_soup):
+    """
+    Coleta estatísticas dos mapas do time a partir do HTML
+    Retorna lista de dicionários com os dados dos mapas
+    """
+    maps = []
+
+    try:
+        map_stats_div = team_soup.find("div", {"class": "map-statistics"})
+        if not map_stats_div:
+            return maps
+
+        for map_container in map_stats_div.find_all("div", {"class": "map-statistics-container"}):
+            try:
+                # Informações básicas do mapa
+                map_row = map_container.find("div", {"class": "map-statistics-row"})
+                map_name = map_row.find("div", {"class": "map-statistics-row-map-mapname"}).text.strip()
+                win_percentage = float(
+                    map_row.find("div", {"class": "map-statistics-row-win-percentage"}).text.strip('%'))
+
+                # Informações estendidas (podem estar ocultas)
+                extended_div = map_container.find("div", {"class": "map-statistics-extended"})
+
+                # Win/Draw/Loss
+                wdl = extended_div.find("div", {"class": "map-statistics-extended-wdl"})
+                wins = int(wdl.find_all("div", {"class": "stat"})[0].text.strip())
+                draws = int(wdl.find_all("div", {"class": "stat"})[1].text.strip())
+                losses = int(wdl.find_all("div", {"class": "stat"})[2].text.strip())
+
+                # Estatísticas gerais
+                general_stats = {}
+                for stat in extended_div.find_all("div", {"class": "map-statistics-extended-general-stat"}):
+                    stat_name = stat.find("div").text.strip()
+                    stat_value = stat.find_all("div")[1].text.strip('%')
+                    general_stats[stat_name] = float(stat_value) if '%' in stat.find_all("div")[1].text else stat_value
+
+                # Veto data
+                veto_data = {}
+                veto_container = extended_div.find("div", {"class": "map-statistics-extended-highlight-veto-container"})
+                if veto_container:
+                    picks_text = \
+                    veto_container.find_all("div", {"class": "map-statistics-extended-highlight-veto"})[0].find_all(
+                        "div")[1].text
+                    bans_text = \
+                    veto_container.find_all("div", {"class": "map-statistics-extended-highlight-veto"})[1].find_all(
+                        "div")[1].text
+
+                    veto_data["picks_percentage"] = float(picks_text.split('%')[0]) if '%' in picks_text else 0
+                    veto_data["bans_percentage"] = float(bans_text.split('%')[0]) if '%' in bans_text else 0
+
+                # Calcular rounds totais e win rates
+                total_rounds = wins + draws + losses
+                round_win_rate = (wins / total_rounds * 100) if total_rounds > 0 else 0
+
+                # Separar CT e T rounds (simplificado - na prática precisaria de scraping mais detalhado)
+                ct_rounds = int(wins * 0.6)  # Aproximação - ajuste conforme dados reais
+                t_rounds = wins - ct_rounds
+                ct_win_rate = (ct_rounds / wins * 100) if wins > 0 else 0
+                t_win_rate = (t_rounds / wins * 100) if wins > 0 else 0
+
+                maps.append({
+                    "map_name": map_name,
+                    "matches_played": total_rounds,
+                    "matches_won": wins,
+                    "win_rate": win_percentage,
+                    "rounds_played": total_rounds * 30,  # Aproximação - 30 rounds por partida
+                    "rounds_won": wins * 16,  # Aproximação - 16 rounds para vencer
+                    "round_win_rate": round_win_rate,
+                    "ct_rounds_won": ct_rounds,
+                    "t_rounds_won": t_rounds,
+                    "ct_win_rate": ct_win_rate,
+                    "t_win_rate": t_win_rate,
+                    "general_stats": general_stats,
+                    "veto_data": veto_data
+                })
+
+            except Exception as e:
+                print(f"Erro ao processar mapa: {e}")
+                continue
+
+    except Exception as e:
+        print(f"Erro ao coletar estatísticas dos mapas do time: {e}")
+
+    return maps
 
 
 def extract_teams_alternative(soup):

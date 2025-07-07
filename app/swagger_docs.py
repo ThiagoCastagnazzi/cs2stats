@@ -15,18 +15,19 @@ def custom_openapi(app: FastAPI):
 
     openapi_schema = get_openapi(
         title="Sistema HLTV Expandido API",
-        version="1.0.0",
+        version="1.1.0",  # Atualizado para refletir as novas funcionalidades
         description="""
         ## API para acessar dados de times e jogadores de Counter-Strike 2
 
         Esta API fornece acesso a dados detalhados sobre times e jogadores de Counter-Strike 2,
-        incluindo estatísticas de desempenho, informações de times e relacionamentos entre entidades.
+        incluindo estatísticas de desempenho, informações de times, conquistas e relacionamentos entre entidades.
 
         ### Principais funcionalidades:
 
-        - **Times**: Consulta de times, rankings e pontuações
-        - **Jogadores**: Informações detalhadas sobre jogadores
+        - **Times**: Consulta de times, rankings, pontuações e conquistas
+        - **Jogadores**: Informações detalhadas sobre jogadores e suas conquistas
         - **Estatísticas**: Métricas de desempenho dos jogadores
+        - **Conquistas**: Troféus e prêmios de times e jogadores
         - **Busca**: Filtros avançados para times e jogadores
 
         ### Modelos de dados:
@@ -34,6 +35,8 @@ def custom_openapi(app: FastAPI):
         - **Team**: Informações básicas dos times
         - **Player**: Dados dos jogadores e suas funções
         - **PlayerStats**: Estatísticas detalhadas de desempenho
+        - **TeamAchievement**: Conquistas e troféus dos times
+        - **PlayerAchievement**: Conquistas e prêmios individuais dos jogadores
 
         ### Paginação:
 
@@ -94,7 +97,9 @@ def custom_openapi(app: FastAPI):
                 "name": "Natus Vincere",
                 "url": "https://www.hltv.org/team/4608/natus-vincere",
                 "ranking": 1,
-                "points": 1000
+                "points": 1000,
+                "achievements_count": 15,
+                "major_wins": 3
             }
         },
         "PlayerExample": {
@@ -106,7 +111,10 @@ def custom_openapi(app: FastAPI):
                 "url": "https://www.hltv.org/player/7998/s1mple",
                 "role": "player",
                 "team_id": 1,
-                "team_name": "Natus Vincere"
+                "team_name": "Natus Vincere",
+                "achievements_count": 12,
+                "major_wins": 2,
+                "individual_awards": 3
             }
         },
         "PlayerStatsExample": {
@@ -133,7 +141,61 @@ def custom_openapi(app: FastAPI):
                 "rating": 1.28,
                 "last_updated": "2024-01-15T10:30:00"
             }
+        },
+        "TeamAchievementExample": {
+            "summary": "Exemplo de Conquista de Time",
+            "value": {
+                "id": 1,
+                "team_id": 1,
+                "title": "BLAST.tv Paris Major 2023",
+                "event_name": "Paris Major",
+                "year": 2023,
+                "placement": "1st",
+                "trophy_image_url": "https://img-cdn.hltv.org/eventtrophy/66nOdGyA6JExAXdwIpFXT6.png",
+                "event_tier": "Major",
+                "event_url": "https://www.hltv.org/events/6793/blasttv-paris-major-2023"
+            }
+        },
+        "PlayerAchievementExample": {
+            "summary": "Exemplo de Conquista de Jogador",
+            "value": {
+                "id": 1,
+                "player_id": 1,
+                "title": "#1 best player in 2021",
+                "event_name": "HLTV Top 20",
+                "year": 2021,
+                "achievement_type": "individual_award",
+                "trophy_image_url": "https://www.hltv.org/img/static/event/trophies/2021/1.png",
+                "individual_award_type": "top20_1st"
+            }
+        },
+        "TopTeamsExample": {
+            "summary": "Exemplo de Times com Mais Conquistas",
+            "value": {
+                "team_id": 1,
+                "team_name": "Natus Vincere",
+                "achievements_count": 15,
+                "major_wins": 3
+            }
+        },
+        "TopPlayersExample": {
+            "summary": "Exemplo de Jogadores com Mais Conquistas",
+            "value": {
+                "player_id": 1,
+                "player_nickname": "s1mple",
+                "team_name": "Natus Vincere",
+                "achievements_count": 12,
+                "major_wins": 2,
+                "individual_awards": 3
+            }
         }
+    }
+
+    # Schemas de resposta para documentação
+    openapi_schema["components"]["schemas"] = {
+        "TeamResponse": team_response_schema,
+        "PlayerResponse": player_response_schema,
+        "PlayerStatsResponse": player_stats_response_schema,
     }
 
     app.openapi_schema = openapi_schema
@@ -148,7 +210,9 @@ team_response_schema = {
         "name": {"type": "string", "description": "Nome do time"},
         "url": {"type": "string", "description": "URL do time na HLTV"},
         "ranking": {"type": "integer", "description": "Ranking atual do time"},
-        "points": {"type": "integer", "description": "Pontos do time no ranking"}
+        "points": {"type": "integer", "description": "Pontos do time no ranking"},
+        "achievements_count": {"type": "integer", "description": "Número total de conquistas"},
+        "major_wins": {"type": "integer", "description": "Número de vitórias em Majors"}
     },
     "required": ["id", "name"]
 }
@@ -162,7 +226,10 @@ player_response_schema = {
         "url": {"type": "string", "description": "URL do jogador na HLTV"},
         "role": {"type": "string", "description": "Função do jogador (player, coach, etc.)"},
         "team_id": {"type": "integer", "description": "ID do time do jogador"},
-        "team_name": {"type": "string", "description": "Nome do time do jogador"}
+        "team_name": {"type": "string", "description": "Nome do time do jogador"},
+        "achievements_count": {"type": "integer", "description": "Número total de conquistas"},
+        "major_wins": {"type": "integer", "description": "Número de vitórias em Majors"},
+        "individual_awards": {"type": "integer", "description": "Número de prêmios individuais"}
     },
     "required": ["id", "nickname"]
 }
@@ -193,4 +260,3 @@ player_stats_response_schema = {
     },
     "required": ["player_id", "player_nickname"]
 }
-

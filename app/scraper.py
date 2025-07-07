@@ -61,22 +61,74 @@ def save_teams_with_active_players():
                 team = db.query(models.Team).filter_by(name=t["name"]).first()
                 if not team:
                     team = models.Team(
-                        name=t["name"],
-                        url=t["url"],
-                        ranking=t["ranking"],
-                        points=t["points"]
+                        name=t['name'],
+                        url=t['url'],
+                        ranking=t['ranking'],
+                        points=t['points'],
+                        logo_url=t.get('logo_url'),
+                        region=t.get('details', {}).get('country'),
+                        win_rate=t.get('stats', {}).get('win_rate'),
                     )
                     db.add(team)
                     logger.info(f"   ➕ Novo time criado: {t["name"]}")
                 else:
                     # Atualiza informações do time
-                    team.ranking = t["ranking"]
-                    team.points = t["points"]
-                    team.url = t["url"]
-                    logger.info(f"   🔄 Time atualizado: {t["name"]}")
+                    team.ranking = t['ranking']
+                    team.points = t['points']
+                    team.url = t['url']
+                    team.logo_url = t.get('logo_url'),
+                    team.region = t.get('details', {}).get('country')
+                    team.win_rate = t.get('stats', {}).get('win_rate')
+                    logger.info(f"   🔄 Time atualizado: {t['name']}")
 
                 db.commit()
                 db.refresh(team)
+
+                if 'trophies' in t:
+                    logger.info(f"   🏆 Processando {len(t['trophies'])} conquistas para {t['name']}")
+
+                    # Remove conquistas antigas
+                    db.query(models.TeamAchievement).filter_by(team_id=team.id).delete()
+
+                    for trophy in t['trophies']:
+                        achievement = models.TeamAchievement(
+                            team_id=team.id,
+                            title=trophy['title'],
+                            event_name=trophy['event_name'],
+                            year=trophy['year'],
+                            placement=trophy['placement'],
+                            trophy_image_url=trophy['trophy_image_url'],
+                            event_tier=trophy['event_tier']
+                        )
+                        db.add(achievement)
+
+                db.commit()
+
+                if 'map_stats' in t and t['map_stats']:
+                    logger.info(f"   🗺️ Processando {len(t['map_stats'])} mapas para {t['name']}")
+                    db.query(models.TeamMapStats).filter_by(team_id=team.id).delete()
+
+                    for map_stat in t['map_stats']:
+                        try:
+                            map_record = models.TeamMapStats(
+                                team_id=team.id,
+                                map_name=map_stat['map_name'],
+                                matches_played=map_stat['matches_played'],
+                                matches_won=map_stat['matches_won'],
+                                win_rate=map_stat['win_rate'],
+                                rounds_played=map_stat['rounds_played'],
+                                rounds_won=map_stat['rounds_won'],
+                                round_win_rate=map_stat['round_win_rate'],
+                                ct_rounds_won=map_stat['ct_rounds_won'],
+                                t_rounds_won=map_stat['t_rounds_won'],
+                                ct_win_rate=map_stat['ct_win_rate'],
+                                t_win_rate=map_stat['t_win_rate']
+                            )
+                            db.add(map_record)
+                            logger.debug(f"      ✅ Mapa {map_stat['map_name']} adicionado")
+                        except Exception as e:
+                            logger.error(f"      ❌ Erro ao processar mapa {map_stat.get('map_name')}: {e}")
+                            continue
 
                 db.commit()
 
@@ -125,11 +177,7 @@ def save_teams_with_active_players():
                     except Exception as e:
                         logger.error(f"   ❌ Erro ao coletar jogadores de {t["name"]}: {e}")
 
-                # Pausa entre times para não sobrecarregar o HLTV.org
-                if i < len(teams):
-                    delay = random.uniform(10, 20)
-                    logger.info(f"   ⏳ Aguardando {delay:.1f}s antes do próximo time...")
-                    time.sleep(delay)
+
 
             except Exception as e:
                 logger.error(f"❌ Erro ao processar time {t["name"]}: {e}")
@@ -222,24 +270,42 @@ def update_active_player_stats(player_id=None, force_update=False, max_players=N
                 stats.saved_teammates_per_round = stats_data.get("saved_teammates_per_round")
                 stats.rating = stats_data.get("rating")
 
+            # Processa os achievements (troféus/conquistas)
+            if "achievements" in player_data and player_data["achievements"]:
+                logger.info(f"   🏆 Processando {len(player_data['achievements'])} conquistas para {player.nickname}")
+
+                # Remove conquistas antigas
+                db.query(models.PlayerAchievement).filter_by(player_id=player.id).delete()
+
+                for achievement in player_data["achievements"]:
+                    player_achievement = models.PlayerAchievement(
+                        player_id=player.id,
+                        title=achievement['title'],
+                        event_name=achievement['event_name'],
+                        year=achievement['year'],
+                        trophy_image_url=achievement['trophy_image_url'],
+                        event_tier=achievement.get('event_tier'),
+                        placement=achievement.get('placement'),
+                    )
+                    db.add(player_achievement)
+
             db.commit()
             db.refresh(player.stats)
             success_count += 1
 
             stats_info = []
             if player_data.get("rating"):
-                stats_info.append(f"rating: {player_data["rating"]}")
+                stats_info.append(f"rating: {player_data['rating']}")
             if player_data.get("photo"):
                 stats_info.append("foto: ✅")
+            if player_data.get("achievements"):
+                stats_info.append(f"conquistas: {len(player_data['achievements'])}")
 
             logger.info(f"   ✅ {player.nickname} atualizado com sucesso!")
             if stats_info:
-                logger.info(f"   📊 Dados coletados: {", ".join(stats_info)}")
+                logger.info(f"   📊 Dados coletados: {', '.join(stats_info)}")
 
-            # Pausa entre jogadores para não sobrecarregar o HLTV.org
-            delay = random.uniform(15, 25)
-            logger.info(f"   ⏳ Aguardando {delay:.1f}s antes do próximo jogador...")
-            time.sleep(delay)
+
 
         except Exception as e:
             error_count += 1

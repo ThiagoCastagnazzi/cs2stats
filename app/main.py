@@ -1,6 +1,8 @@
+from typing import List, Optional
+
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from starlette.middleware.cors import CORSMiddleware
 
 from app import models, banco
 from swagger_docs import custom_openapi
@@ -12,6 +14,19 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json"
+)
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Configurar documentação customizada
@@ -29,26 +44,65 @@ def get_db():
 @app.get("/", tags=["Home"])
 def read_home():
     """Endpoint de boas-vindas da API"""
-    return {"message": "Bem-vindo à API do Sistema HLTV Expandido"}
+    return {"message": "Bem-vindo à API do Sistema HLTV"}
 
 
 # Rotas para Times
 @app.get("/teams/", tags=["Teams"], response_model=List[dict])
-def read_teams(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+def read_teams(
+        skip: int = 0,
+        limit: int = 20,
+        search: Optional[str] = None,
+        db: Session = Depends(get_db)
+):
     """
     Retorna uma lista de todos os times.
 
     - **skip**: Número de registros a pular (paginação)
     - **limit**: Número máximo de registros a retornar
     """
-    teams = db.query(models.Team).offset(skip).limit(limit).all()
+    query = db.query(models.Team)
+
+    if search:
+        query = query.filter(
+            models.Team.name.ilike(f"%{search}%")
+        )
+
+    teams = query.offset(skip).limit(limit).all()
     return [
         {
             "id": team.id,
             "name": team.name,
             "url": team.url,
             "ranking": team.ranking,
-            "points": team.points
+            "points": team.points,
+            "logo_url": team.logo_url,
+            "coach_name": team.coach_name,
+            "region": team.region,
+            "win_rate": team.win_rate,
+            "players": [
+                {
+                    "nickname": player.nickname,
+                    "picture": player.stats.picture,
+                    "rating": player.stats.rating,
+                    "kd_ratio": player.stats.kd_ratio,
+                    "damage_per_round": player.stats.damage_per_round,
+                }
+                for player in team.players
+            ],
+            "achievements": [
+                {
+                    "id": achievement.id,
+                    "title": achievement.title,
+                    "event_name": achievement.event_name,
+                    "year": achievement.year,
+                    "placement": achievement.placement,
+                    "prize_money": achievement.prize_money,
+                    "trophy_image_url": achievement.trophy_image_url,
+                    "event_tier": achievement.event_tier
+                }
+                for achievement in team.achievements
+            ]
         }
         for team in teams
     ]
@@ -57,7 +111,7 @@ def read_teams(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
 @app.get("/teams/{team_id}", tags=["Teams"])
 def read_team(team_id: int, db: Session = Depends(get_db)):
     """
-    Retorna informações detalhadas de um time específico.
+    Retorna informações detalhadas de um time específico incluindo estatísticas de mapas.
 
     - **team_id**: ID do time
     """
@@ -70,14 +124,60 @@ def read_team(team_id: int, db: Session = Depends(get_db)):
         "name": team.name,
         "url": team.url,
         "ranking": team.ranking,
-        "points": team.points
+        "points": team.points,
+        "logo_url": team.logo_url,
+        "region": team.region,
+        "win_rate": team.win_rate,
+        "weeks_in_top30": team.weeks_in_top30,
+        "average_player_age": team.average_player_age,
+        "coach_name": team.coach_name,
+        "peak_ranking": team.peak_ranking,
+        "time_at_peak": team.time_at_peak,
+        "players": [
+            {
+                "id": player.id,
+                "nickname": player.nickname,
+                "role": player.role,
+                "picture": player.stats.picture if player.stats else None
+            }
+            for player in team.players
+        ],
+        "map_stats": [
+            {
+                "map_name": stat.map_name,
+                "matches_played": stat.matches_played,
+                "matches_won": stat.matches_won,
+                "win_rate": stat.win_rate,
+                "rounds_played": stat.rounds_played,
+                "rounds_won": stat.rounds_won,
+                "round_win_rate": stat.round_win_rate,
+                "ct_rounds_won": stat.ct_rounds_won,
+                "t_rounds_won": stat.t_rounds_won,
+                "ct_win_rate": stat.ct_win_rate,
+                "t_win_rate": stat.t_win_rate
+            }
+            for stat in team.map_stats
+        ],
+        "achievements": [
+            {
+                "id": achievement.id,
+                "title": achievement.title,
+                "event_name": achievement.event_name,
+                "year": achievement.year,
+                "placement": achievement.placement,
+                "prize_money": achievement.prize_money,
+                "trophy_image_url": achievement.trophy_image_url,
+                "event_tier": achievement.event_tier
+            }
+            for achievement in team.achievements
+        ]
     }
 
 
 @app.get("/teams/{team_id}/players", tags=["Teams"])
 def read_team_players(team_id: int, db: Session = Depends(get_db)):
     """
-    Retorna todos os jogadores de um time específico.
+    Retorna todos os jogadores de um time específico com estatísticas completas.
 
     - **team_id**: ID do time
     """
@@ -92,22 +192,75 @@ def read_team_players(team_id: int, db: Session = Depends(get_db)):
             "real_name": player.real_name,
             "url": player.url,
             "role": player.role,
-            "team_id": player.team_id
+            "team_id": player.team_id,
+            "team_name": team.name,
+            "stats": {
+                "picture": player.stats.picture if player.stats else None,
+                "country": player.stats.country if player.stats else None,
+                "age": player.stats.age if player.stats else None,
+                "total_kills": player.stats.total_kills if player.stats else None,
+                "total_deaths": player.stats.total_deaths if player.stats else None,
+                "headshot_percentage": player.stats.headshot_percentage if player.stats else None,
+                "kd_ratio": player.stats.kd_ratio if player.stats else None,
+                "damage_per_round": player.stats.damage_per_round if player.stats else None,
+                "grenade_damage_per_round": player.stats.grenade_damage_per_round if player.stats else None,
+                "maps_played": player.stats.maps_played if player.stats else None,
+                "rounds_played": player.stats.rounds_played if player.stats else None,
+                "kills_per_round": player.stats.kills_per_round if player.stats else None,
+                "assists_per_round": player.stats.assists_per_round if player.stats else None,
+                "deaths_per_round": player.stats.deaths_per_round if player.stats else None,
+                "saved_by_teammate_per_round": player.stats.saved_by_teammate_per_round if player.stats else None,
+                "saved_teammates_per_round": player.stats.saved_teammates_per_round if player.stats else None,
+                "rating": player.stats.rating if player.stats else None,
+                "last_updated": player.stats.last_updated.isoformat() if player.stats and player.stats.last_updated else None
+            },
+            "achievements": [
+                {
+                    "id": achievement.id,
+                    "title": achievement.title,
+                    "event_name": achievement.event_name,
+                    "year": achievement.year,
+                    "placement": achievement.placement,
+                    "prize_money": achievement.prize_money,
+                    "trophy_image_url": achievement.trophy_image_url,
+                    "event_tier": achievement.event_tier,
+                    "mvp_award": achievement.mvp_award
+                }
+                for achievement in player.achievements
+            ] if player.achievements else []
         }
         for player in team.players
     ]
 
 
-# Rotas para Jogadores
 @app.get("/players/", tags=["Players"])
-def read_players(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+def read_players(
+        skip: int = 0,
+        limit: int = 20,
+        search: Optional[str] = None,
+        db: Session = Depends(get_db)
+):
     """
-    Retorna uma lista de todos os jogadores.
+    Retorna uma lista de todos os jogadores com estatísticas básicas.
 
+    Parâmetros:
     - **skip**: Número de registros a pular (paginação)
     - **limit**: Número máximo de registros a retornar
+    - **search**: Texto para buscar no nickname (opcional)
     """
-    players = db.query(models.Player).offset(skip).limit(limit).all()
+    # Cria a query base
+    query = db.query(models.Player)
+
+    # Aplica o filtro de busca se o parâmetro foi fornecido
+    if search:
+        query = query.filter(
+            models.Player.nickname.ilike(f"%{search}%") |
+            models.Player.real_name.ilike(f"%{search}%")
+        )
+
+    # Aplica paginação
+    players = query.offset(skip).limit(limit).all()
+
     return [
         {
             "id": player.id,
@@ -116,7 +269,30 @@ def read_players(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
             "url": player.url,
             "role": player.role,
             "team_id": player.team_id,
-            "team_name": player.team.name if player.team else None
+            "team_name": player.team.name if player.team else None,
+            "stats": {
+                "rating": player.stats.rating if player.stats else None,
+                "kd_ratio": player.stats.kd_ratio if player.stats else None,
+                "headshot_percentage": player.stats.headshot_percentage if player.stats else None,
+                "damage_per_round": player.stats.damage_per_round if player.stats else None,
+                "maps_played": player.stats.maps_played if player.stats else None,
+                "country": player.stats.country if player.stats else None,
+                "picture": player.stats.picture if player.stats else None,
+            },
+            "achievements": [
+                {
+                    "id": achievement.id,
+                    "title": achievement.title,
+                    "event_name": achievement.event_name,
+                    "year": achievement.year,
+                    "placement": achievement.placement,
+                    "prize_money": achievement.prize_money,
+                    "trophy_image_url": achievement.trophy_image_url,
+                    "event_tier": achievement.event_tier,
+                    "mvp_award": achievement.mvp_award
+                }
+                for achievement in player.achievements
+            ]
         }
         for player in players
     ]
@@ -140,7 +316,41 @@ def read_player(player_id: int, db: Session = Depends(get_db)):
         "url": player.url,
         "role": player.role,
         "team_id": player.team_id,
-        "team_name": player.team.name if player.team else None
+        "team_name": player.team.name if player.team else None,
+        "stats": {
+                "picture": player.stats.picture if player.stats else None,
+                "country": player.stats.country if player.stats else None,
+                "age": player.stats.age if player.stats else None,
+                "total_kills": player.stats.total_kills if player.stats else None,
+                "total_deaths": player.stats.total_deaths if player.stats else None,
+                "headshot_percentage": player.stats.headshot_percentage if player.stats else None,
+                "kd_ratio": player.stats.kd_ratio if player.stats else None,
+                "damage_per_round": player.stats.damage_per_round if player.stats else None,
+                "grenade_damage_per_round": player.stats.grenade_damage_per_round if player.stats else None,
+                "maps_played": player.stats.maps_played if player.stats else None,
+                "rounds_played": player.stats.rounds_played if player.stats else None,
+                "kills_per_round": player.stats.kills_per_round if player.stats else None,
+                "assists_per_round": player.stats.assists_per_round if player.stats else None,
+                "deaths_per_round": player.stats.deaths_per_round if player.stats else None,
+                "saved_by_teammate_per_round": player.stats.saved_by_teammate_per_round if player.stats else None,
+                "saved_teammates_per_round": player.stats.saved_teammates_per_round if player.stats else None,
+                "rating": player.stats.rating if player.stats else None,
+                "last_updated": player.stats.last_updated.isoformat() if player.stats and player.stats.last_updated else None
+            },
+        "achievements": [
+            {
+                "id": achievement.id,
+                "title": achievement.title,
+                "event_name": achievement.event_name,
+                "year": achievement.year,
+                "placement": achievement.placement,
+                "prize_money": achievement.prize_money,
+                "trophy_image_url": achievement.trophy_image_url,
+                "event_tier": achievement.event_tier,
+                "mvp_award": achievement.mvp_award
+            }
+            for achievement in player.achievements
+        ]
     }
 
 
@@ -218,6 +428,138 @@ def read_all_player_stats(skip: int = 0, limit: int = 20, db: Session = Depends(
         }
         for stat in stats
     ]
+
+
+# Rotas para Achievements
+@app.get("/teams/{team_id}/achievements", tags=["Achievements"])
+def read_team_achievements(team_id: int, db: Session = Depends(get_db)):
+    """
+    Retorna todos os achievements de um time específico.
+
+    - **team_id**: ID do time
+    """
+    team = db.query(models.Team).filter(models.Team.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Time não encontrado")
+
+    return [
+        {
+            "id": achievement.id,
+            "title": achievement.title,
+            "event_name": achievement.event_name,
+            "year": achievement.year,
+            "placement": achievement.placement,
+            "prize_money": achievement.prize_money,
+            "trophy_image_url": achievement.trophy_image_url,
+            "event_tier": achievement.event_tier,
+            "team_id": achievement.team_id,
+            "team_name": team.name
+        }
+        for achievement in team.achievements
+    ]
+
+
+@app.get("/players/{player_id}/achievements", tags=["Achievements"])
+def read_player_achievements(player_id: int, db: Session = Depends(get_db)):
+    """
+    Retorna todos os achievements de um jogador específico.
+
+    - **player_id**: ID do jogador
+    """
+    player = db.query(models.Player).filter(models.Player.id == player_id).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Jogador não encontrado")
+
+    return [
+        {
+            "id": achievement.id,
+            "title": achievement.title,
+            "event_name": achievement.event_name,
+            "year": achievement.year,
+            "placement": achievement.placement,
+            "prize_money": achievement.prize_money,
+            "trophy_image_url": achievement.trophy_image_url,
+            "event_tier": achievement.event_tier,
+            "mvp_award": achievement.mvp_award,
+            "player_id": achievement.player_id,
+            "player_nickname": player.nickname
+        }
+        for achievement in player.achievements
+    ]
+
+
+@app.get("/achievements/", tags=["Achievements"])
+def read_all_achievements(
+        skip: int = 0,
+        limit: int = 20,
+        achievement_type: Optional[str] = None,
+        year: Optional[int] = None,
+        event_tier: Optional[str] = None,
+        db: Session = Depends(get_db)
+):
+    """
+    Retorna todos os achievements do sistema com filtros opcionais.
+
+    - **skip**: Número de registros a pular (paginação)
+    - **limit**: Número máximo de registros a retornar
+    - **achievement_type**: Tipo de achievement ('team' ou 'player')
+    - **year**: Filtrar por ano
+    - **event_tier**: Filtrar por tier do evento (S-Tier, A-Tier, etc.)
+    """
+    achievements = []
+
+    if achievement_type == "team" or achievement_type is None:
+        team_achievements = db.query(models.TeamAchievement)
+
+        if year:
+            team_achievements = team_achievements.filter(models.TeamAchievement.year == year)
+        if event_tier:
+            team_achievements = team_achievements.filter(models.TeamAchievement.event_tier == event_tier)
+
+        team_achievements = team_achievements.offset(skip).limit(limit).all()
+
+        for achievement in team_achievements:
+            achievements.append({
+                "id": achievement.id,
+                "type": "team",
+                "title": achievement.title,
+                "event_name": achievement.event_name,
+                "year": achievement.year,
+                "placement": achievement.placement,
+                "prize_money": achievement.prize_money,
+                "trophy_image_url": achievement.trophy_image_url,
+                "event_tier": achievement.event_tier,
+                "team_id": achievement.team_id,
+                "team_name": achievement.team.name if achievement.team else None
+            })
+
+    if achievement_type == "player" or achievement_type is None:
+        player_achievements = db.query(models.PlayerAchievement)
+
+        if year:
+            player_achievements = player_achievements.filter(models.PlayerAchievement.year == year)
+        if event_tier:
+            player_achievements = player_achievements.filter(models.PlayerAchievement.event_tier == event_tier)
+
+        player_achievements = player_achievements.offset(skip).limit(limit).all()
+
+        for achievement in player_achievements:
+            achievements.append({
+                "id": achievement.id,
+                "type": "player",
+                "title": achievement.title,
+                "event_name": achievement.event_name,
+                "year": achievement.year,
+                "placement": achievement.placement,
+                "prize_money": achievement.prize_money,
+                "trophy_image_url": achievement.trophy_image_url,
+                "event_tier": achievement.event_tier,
+                "mvp_award": achievement.mvp_award,
+                "player_id": achievement.player_id,
+                "player_nickname": achievement.player.nickname if achievement.player else None
+            })
+
+    return achievements
 
 
 # Rotas de busca e filtros
@@ -323,4 +665,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
